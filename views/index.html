@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html data-theme="dark">
+
+<head>
+  <title>Exercise Tracker</title>
+  <link rel="shortcut icon" href="https://cdn.freecodecamp.org/universal/favicons/favicon.ico" type="image/x-icon" />
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css" />
+  <link href="style.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="css/pico.min.css">
+
+  <!-- Font awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="container">
+      <h2>Exercise tracker</h2>
+    </div>
+    <article>
+      <form id="user-form" action="/api/users" method="post">
+        <h3>Create a New User</h3>
+        <p><code>POST /api/users</code></p>
+        <input id="username" type="text" name="username" placeholder="Username" />
+        <input type="submit" value="Submit" />
+      </form>
+      <!-- Output -->
+      <div id="output">
+        <code id="user-creation-output">Output:</code>
+      </div>
+    </article>
+    <article>
+      <form id="exercise-form" method="post">
+        <h3>Add exercises</h3>
+        <p><code>POST /api/users/:_id/exercises</code></p>
+        <input id="uid" type="text" name=":_id" placeholder=":_id" required />
+        <input id="desc" type="text" name="description" placeholder="description*" required />
+        <input id="dur" type="text" name="duration" placeholder="duration* (mins.)" required />
+        <input id="date" type="text" name="date" placeholder="date (yyyy-mm-dd)" />
+        <input type="submit" value="Submit" />
+      </form>
+    </article>
+    <p>
+      <strong>GET user's exercise log: </strong>
+      <code>GET /api/users/:_id/logs?[from][&amp;to][&amp;limit]</code>
+    </p>
+    <p><strong>[ ]</strong> = optional</p>
+    <p><strong>from, to</strong> = dates (yyyy-mm-dd); <strong>limit</strong> = number</p>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log("DOMContentLoaded");
+      const exerciseForm = document.getElementById("exercise-form");
+      const userCreationOutput = document.getElementById("user-creation-output");
+      const userCreationForm = document.getElementById("user-form");
+      exerciseForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const userId = document.getElementById("uid").value;
+        const description = document.getElementById("desc").value;
+        const duration = document.getElementById("dur").value;
+        const date = document.getElementById("date").value ? new Date().toDateString() : document.getElementById("date").value;
+
+        fetch(`/api/users/${userId}/exercises`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ description, duration, date }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("data", data);
+            userCreationOutput.innerText = `User ${data.username} has been created with the id: ${data._id}`
+          })
+          .catch((error) => {
+            console.log("error", error);
+            userCreationOutput.innerHTML = `
+    <p>Error: ${error}</p>
+    `;
+          });
+
+      });
+
+      userCreationForm.addEventListener("submit", (event) => {
+        console.log("submit");
+        event.preventDefault();
+        const username = document.getElementById("username").value;
+        fetch("/api/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            userCreationOutput.innerText = `
+           Username ${data.username} has been created with the id: ${data._id}
+          `
+          })
+          .catch((error) => {
+            console.log("error", error);
+            userCreationOutput.innerHTML = `
+    <p>Error: ${error}</p>
+    `;
+          });
+      });
+    });
+  </script>
+</body>
+
+</html>
